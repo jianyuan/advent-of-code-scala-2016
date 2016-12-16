@@ -39,15 +39,17 @@ object Day1 extends App {
       case East => Coordinate(x + steps, y)
       case West => Coordinate(x - steps, y)
     }
+
+    def moves(direction: Direction, steps: Int): Seq[Coordinate] = (1 to steps).map(step => move(direction, step))
   }
 
   case class Instruction(turn: Turn, steps: Int)
 
-  case class State(coordinate: Coordinate, direction: Direction) {
+  case class State(coordinates: Seq[Coordinate], direction: Direction) {
     def apply(instruction: Instruction): State = {
       val newDirection = direction.turn(instruction.turn)
-      val newCoordinate = coordinate.move(newDirection, instruction.steps)
-      State(newCoordinate, newDirection)
+      val newCoordinates = coordinates.last.moves(newDirection, instruction.steps)
+      State(coordinates ++ newCoordinates, newDirection)
     }
   }
 
@@ -65,9 +67,12 @@ object Day1 extends App {
   val input = io.Source.fromInputStream(io.Source.getClass.getResourceAsStream("/day1.txt")).mkString
   val instructions = parseInstructions(input)
 
-  val initialState = State(Coordinate(0, 0), North)
+  val initialState = State(Seq(Coordinate(0, 0)), North)
 
-  val steps = instructions.scanLeft(initialState) { (state, instruction) => state.apply(instruction) }
+  val finalState = instructions.foldLeft(initialState) { (state, instruction) => state.apply(instruction) }
 
-  println(s"How many blocks away is Easter Bunny HQ? ${steps.last.coordinate.distance}")
+  val answer1 = finalState.coordinates.last.distance
+  println(s"How many blocks away is Easter Bunny HQ? $answer1")
+  val answer2 = finalState.coordinates.find(coordinate => finalState.coordinates.count(_ == coordinate) > 1).get.distance
+  println(s"How many blocks away is the first location you visit twice? $answer2")
 }
