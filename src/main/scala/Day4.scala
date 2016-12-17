@@ -8,20 +8,27 @@ object Day4 extends App {
   val roomPattern = """([a-z\-]+)-(\d+)\[([a-z]+)\]""".r
 
   case class Room(name: String, sectorId: Int, checksum: String) {
-    def isValid: Boolean = {
+    val alphabets = "abcdefghijklmnopqrstuvwxyz"
+
+    lazy val isValid: Boolean = {
       val expectedChecksum = name
         .filterNot(_ == '-')
-        .groupBy(x => x)
+        .groupBy(identity)
         .mapValues(_.length)
         .groupBy(_._2)
-        .mapValues(_.keys.toList.sorted)
-        .toList
+        .mapValues(_.keys.toSeq.sorted)
+        .toSeq
         .sortBy(_._1)
         .reverse
         .flatMap(_._2)
         .take(5)
         .mkString
       checksum == expectedChecksum
+    }
+
+    lazy val decryptedName: String = name.map {
+      case '-' => ' '
+      case char => alphabets((alphabets.indexOf(char) + sectorId) % alphabets.length)
     }
   }
 
@@ -31,4 +38,7 @@ object Day4 extends App {
 
   val answer1 = rooms.filter(_.isValid).map(_.sectorId).sum
   println(s"What is the sum of the sector IDs of the real rooms? $answer1")
+
+  val answer2 = rooms.filter(_.isValid).find(_.decryptedName.contains("northpole")).get.sectorId
+  println(s"What is the sector ID of the room where North Pole objects are stored? $answer2")
 }
