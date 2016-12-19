@@ -46,10 +46,12 @@ object Day8 extends App {
     val screenA: Int = screen.head.length
     val screenB: Int = screen.length
 
-    def renderScreen: String = screen.map(_.map {
-      case false => '.'
-      case true => '#'
-    }.mkString).mkString("\n")
+    def renderScreen: String = screen.map {
+      _.map {
+        case false => ' '
+        case true => '#'
+      }.mkString
+    }.mkString("\n")
 
     def apply(instruction: Instruction): State = instruction.nextState(this)
 
@@ -69,6 +71,10 @@ object Day8 extends App {
 
   val screen: List[List[Boolean]] = List.fill(6, 50)(false)
 
-  val answer1 = instructions.foldLeft(State(screen))((state, instruction) => state(instruction)).numLit
+  val finalState = instructions.foldLeft(State(screen))((state, instruction) => state(instruction))
+
+  val answer1 = finalState.numLit
   println(s"How many pixels should be lit? $answer1")
+
+  println(finalState.renderScreen)
 }
